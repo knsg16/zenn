@@ -6,3 +6,8 @@
 ```shell
 yarn zenn new:article
 ```
+
+## プレビュー
+```shell
+yarn zenn preview
+```
