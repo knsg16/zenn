@@ -373,3 +373,23 @@ exports.onExecutePostLogin = async (event, api) => {
 6. api.user.setAppMetadata 関数を使用すると、ユーザーのプロファイルに追加のプロパティを追加することができます。
 
 このアクションをデプロイする前に、もう1つやるべきことが残っています。
+
+# Ngrokを使ってlocalhost:3000を公開する
+作成したActionはAuth0のサーバ上で動作します。あなたのコンピューターで動作しているlocalhost:3000に接続することはできません。しかし、Ngrok というツールを使って localhost:3000 をインターネットに公開し、Auth0 のサーバーからリクエストを受け取れるようにすることができます。
+
+Ngrok は、Auth0 Action で使用可能な localhost サーバーへの URL を生成します。
+
+アプリの実行中に、以下のコマンドを実行して localhost:3000 を公開します。
+
+```shell
+npx ngrok http 3000
+```
+
+転送先URLをコピーし、アクションの転送先URLをlocalhost:3000に置き換えて、[デプロイ]をクリックします。
+
+アクションがデプロイされたので、[Back to flow]ボタンを押して、Loginフローに戻ります。
+
+最後に、新しく作成したアクションをLoginフローに追加する必要があります。アクションは、[Custom]タブの下に表示されます。アクションをフローに追加するには、「開始」と「完了」の間にアクションをそして、[Apply]をクリックして変更を保存します。
+
+![](https://storage.googleapis.com/zenn-user-upload/7e55e5e27ab7-20220619.png)
+
