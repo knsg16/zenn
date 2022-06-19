@@ -437,4 +437,225 @@ export default handler;
 
 ![](https://storage.googleapis.com/zenn-user-upload/430f4966293d-20220619.png)
 
+## リンクの作成 - 認証保護されたページ
+graphql/types/Link.tsを更新し、リンクを作成する機能を追加する以下の変異を行います。
 
+```ts
+// graphql/types/Link.ts
+export const CreateLinkMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('createLink', {
+      type: Link,
+      args: {
+        title: nonNull(stringArg()),
+        url: nonNull(stringArg()),
+        imageUrl: nonNull(stringArg()),
+        category: nonNull(stringArg()),
+        description: nonNull(stringArg()),
+      },
+      async resolve(_parent, args, ctx) {
+
+        if (!ctx.user) {
+          throw new Error(`You need to be logged in to perform an action`)
+        }
+
+        const newLink = {
+          title: args.title,
+          url: args.url,
+          imageUrl: args.imageUrl,
+          category: args.category,
+          description: args.description,
+        }
+
+        return await ctx.prisma.link.create({
+          data: newLink,
+        })
+      },
+    })
+  },
+})
+```
+
+args プロパティは、新しいリンクを作成するために必要な入力を定義します。また、変異はユーザがログインしているかどうかをチェックするので、認証されたユーザのみがリンクを作成することができます。最後に、Prismaのcreate()関数が新しいデータベースレコードを作成します。
+
+次に、pages/admin.tsxページを作成し、以下のコードを追加します。このコードにより、新しいリンクの作成が可能になります。
+
+```tsx
+// pages/admin.tsx
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { gql, useMutation } from '@apollo/client'
+import toast, { Toaster } from 'react-hot-toast'
+import { getSession } from '@auth0/nextjs-auth0'
+import prisma from '../lib/prisma'
+
+const CreateLinkMutation = gql`
+  mutation($title: String!, $url: String!, $imageUrl: String!, $category: String!, $description: String!) {
+    createLink(title: $title, url: $url, imageUrl: $imageUrl, category: $category, description: $description) {
+      title
+      url
+      imageUrl
+      category
+      description
+    }
+  }
+`
+
+const Admin = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm()
+
+  const [createLink, { loading, error }] = useMutation(CreateLinkMutation, {
+    onCompleted: () => reset()
+  })
+
+  const onSubmit = async data => {
+    const { title, url, category, description } = data
+    const imageUrl = `https://via.placeholder.com/300`
+    const variables = { title, url, category, description, imageUrl }
+    try {
+      toast.promise(createLink({ variables }), {
+        loading: 'Creating new link..',
+        success: 'Link successfully created!🎉',
+        error: `Something went wrong 😥 Please try again -  ${error}`,
+      })
+
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  return (
+    <div className="container mx-auto max-w-md py-12">
+      <Toaster />
+      <h1 className="text-3xl font-medium my-5">Create a new link</h1>
+      <form className="grid grid-cols-1 gap-y-6 shadow-lg p-8 rounded-lg" onSubmit={handleSubmit(onSubmit)}>
+        <label className="block">
+          <span className="text-gray-700">Title</span>
+          <input
+            placeholder="Title"
+            name="title"
+            type="text"
+            {...register('title', { required: true })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Description</span>
+          <input
+            placeholder="Description"
+            {...register('description', { required: true })}
+            name="description"
+            type="text"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Url</span>
+          <input
+            placeholder="https://example.com"
+            {...register('url', { required: true })}
+            name="url"
+            type="text"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Category</span>
+          <input
+            placeholder="Name"
+            {...register('category', { required: true })}
+            name="category"
+            type="text"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </label>
+
+        <button
+          disabled={loading}
+          type="submit"
+          className="my-4 capitalize bg-blue-500 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-600"
+        >
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg
+                className="w-6 h-6 animate-spin mr-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
+              </svg>
+              Creating...
+            </span>
+          ) : (
+            <span>Create Link</span>
+          )}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+export default Admin
+
+export const getServerSideProps = async ({ req, res }) => {
+  const session = getSession(req, res)
+
+  if (!session) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/api/auth/login',
+      },
+      props: {},
+    }
+  }
+
+  return {
+    props: {},
+  }
+}
+```
+
+onSubmit 関数は、フォームの値を createLink 変異に渡します。変異が実行されると、成功、ロード、エラーのいずれかのトーストが表示されます。
+
+getServerSidePropsでは、セッションがない場合、ユーザをログインページにリダイレクトしています。ログインしたユーザーの電子メールと一致するユーザーレコードが見つかった場合、/admin ページがレンダリングされます。
+
+認証されたユーザーがリンクを作成するために使用できる+作成ボタンを追加して、Header.tsxファイルを更新します。
+
+```tsx
+// components/Layout/Header.tsx
+/** imports */
+
+const Header = () => {
+  const { user } = useUser()
+  return (
+    <header className="text-gray-600 body-font">
+         {/* the rest of the header... */}
+        <nav className="...">
+          {user && (
+            <div className="flex itemx-center justify-center mr-5 capitalize bg-blue-500 py-1 px-3 rounded-md text-white">
+              <Link href="/admin">
+                <a>
+                  + Create
+                </a>
+              </Link>
+            </div>
+          )}
+           {/* Login/ Logout button... */}
+        </nav>
+      </div>
+    </header>
+  )
+}
+
+export default Header
+```
+
+これで、リンクの作成ができるようになるはずです 🚀
