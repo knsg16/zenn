@@ -70,6 +70,43 @@ npm run dev
 
 # プロジェクトの構成と依存関係
 
+プロジェクトのフォルダ構成は以下の通りです。
+```
+awesome-links/
+┣ components/
+┣ data/
+┃ ┗ links.ts
+┣ graphql/
+┃ ┣ types/
+┃ ┣ context.ts
+┃ ┣ schema.graphql
+┃ ┗ schema.ts
+┣ lib/
+┃ ┣ apollo.ts
+┃ ┗ prisma.ts
+┣ pages/
+┃ ┣ api/
+┃ ┃ ┗ graphql.ts
+┃ ┣ _app.tsx
+┃ ┗ index.tsx
+┣ prisma/
+┃ ┣ schema.prisma
+┃ ┗ seed.ts
+┣ public/
+┣ styles/
+┃ ┗ tailwind.css
+┣ .babelrc
+┣ .env.example
+┣ .gitignore
+┣ README.md
+┣ next-env.d.ts
+┣ package-lock.json
+┣ package.json
+┣ postcss.config.js
+┣ tailwind.config.js
+┗ tsconfig.json
+```
+
 このアプリケーションはNext.jsで、次のライブラリやツールを利用しています。
 
 - データベースアクセス/CRUD操作のためのPrisma
