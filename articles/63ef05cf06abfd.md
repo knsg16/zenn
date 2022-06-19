@@ -659,3 +659,113 @@ export default Header
 ```
 
 これで、リンクの作成ができるようになるはずです 🚀
+
+## ボーナス：ユーザーの役割に応じたページの保護
+
+管理者ユーザのみがリンクを作成できるようにすることで、認証を強化することができます。
+
+まず、ユーザーのロールをチェックするために、createLink変異を更新してください。
+
+```ts
+// graphql/types/Link.ts
+export const CreateLinkMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('createLink', {
+      type: Link,
+      args: {
+        title: nonNull(stringArg()),
+        url: nonNull(stringArg()),
+        imageUrl: nonNull(stringArg()),
+        category: nonNull(stringArg()),
+        description: nonNull(stringArg()),
+      },
+      async resolve(_parent, args, ctx) {
+        if (!ctx.user) {
+          throw new Error(`You need to be logged in to perform an action`)
+        }
+
+        const user = await ctx.prisma.user.findUnique({
+          where: {
+            email: ctx.user.email,
+          },
+        });
+
+         if (user.role !== 'ADMIN') {
+          throw new Error(`You do not have permission to perform action`);
+        }
+
+        const newLink = {
+          title: args.title,
+          url: args.url,
+          imageUrl: args.imageUrl,
+          category: args.category,
+          description: args.description,
+        };
+
+        return await ctx.prisma.link.create({
+          data: newLink,
+        });
+      },
+    });
+  },
+});
+```
+
+admin.tsxページを更新し、getServerSidePropsにロールチェックを追加して、adminsでないユーザをリダイレクトします。ADMINロールを持たないユーザーは、/404ページにリダイレクトされます。
+
+```tsx
+// pages/admin.tsx
+export const getServerSideProps = async ({ req, res }) => {
+  const session = getSession(req, res);
+
+  if (!session) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/api/auth/login',
+      },
+      props: {},
+    };
+  }
+
+  const user = await prisma.user.findUnique({
+    select: {
+      email: true,
+      role: true,
+    },
+    where: {
+      email: session.user.email,
+    },
+  });
+
+  if (user.role !== 'ADMIN') {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/404',
+      },
+      props: {},
+    };
+  }
+
+  return {
+    props: {},
+  };
+};
+```
+
+サインアップ時にユーザーに割り当てられるデフォルトのロールはUSERです。そのため、/adminページに移動しようとしても、もはや機能しません。
+
+これを変更するには、データベース内のユーザーのロールフィールドを変更します。これはPrisma Studioで非常に簡単に行えます。
+
+まず、ターミナルでnpx prisma studioを実行し、Prisma Studioを起動します。次に、ユーザーモデルをクリックし、現在のユーザーと一致するレコードを探します。ここで、ユーザーのロールをUSERからADMINに更新してください。Save 1 change ボタンを押して、変更を保存します。
+
+![](https://storage.googleapis.com/zenn-user-upload/a36b9bfa50ec-20220619.png)
+
+アプリケーションの /admin ページに移動して、出来上がりです。これで、再びリンクを作成することができます。
+
+# まとめと次のステップ
+このパートでは、Auth0を使用してNext.jsアプリに認証と認可を追加する方法と、Auth0 Actionsを使用してデータベースにユーザーを追加する方法について学びました。
+
+次回は、AWS S3を使った画像アップロードの方法を学びますので、お楽しみに。
