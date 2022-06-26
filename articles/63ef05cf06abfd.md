@@ -12,6 +12,12 @@ published: true
 
 ![](https://storage.googleapis.com/zenn-user-upload/2a29873cfaae-20220619.png)
 
+Part1はこちら
+https://zenn.dev/kanasugi/articles/a840e733f8e6a1
+
+Part2はこちら
+https://zenn.dev/kanasugi/articles/e14995bc1c8ad3
+
 
 # はじめに
 このコースでは、ユーザーがキュレーションされたリンクのリストを閲覧し、お気に入りのリンクをブックマークできるフルスタックアプリ「awesome-links」を構築する方法を学びます。
