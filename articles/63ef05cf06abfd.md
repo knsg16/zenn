@@ -44,7 +44,7 @@ git clone -b part-3 https://github.com/prisma/awesome-links.git
 
 
 ```shell
-cd awesome-linksnpm install
+cd awesome-links npm install
 ```
 
 # データベースのシード
