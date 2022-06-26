@@ -63,6 +63,52 @@ npx prisma db seed
 
 このコマンドは、/prisma ディレクトリにある seed.ts ファイルを実行します。seed.ts は、Prisma Client を使用してデータベースに 4 つのリンクと 1 人のユーザーを作成します。
 
+
+:::message
+もし、データベースのseedができない場合は、package.jsonを以下のように変更してみてください。
+
+:::
+
+```json
+{
+  "name": "awesome-links",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.5.10",
+    "@prisma/client": "^3.12.0",
+    "apollo-server-micro": "^3.6.7",
+    "graphql": "^16.3.0",
+    "micro-cors": "^0.1.1",
+    "next": "11.0.1",
+    "nexus": "^1.3.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.3.3",
+    "@tailwindcss/typography": "^0.4.1",
+    "@types/node": "^16.11.11",
+    "@types/react": "^17.0.14",
+    "autoprefixer": "^10.3.1",
+    "postcss": "^8.3.5",
+    "prisma": "^3.12.0",
+    "tailwindcss": "^2.2.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.5.2"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
+}
+
+```
+
 これで、以下のコマンドを実行して、アプリケーションサーバーを起動することができます。
 ```shell
 npm run dev
